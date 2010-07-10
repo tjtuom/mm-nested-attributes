@@ -1,32 +1,46 @@
 mm-nested-attributes
-    by FIXME (your name)
-    FIXME (url)
+    by Toni Tuominen
+    http://github.com/tjtuom/mm-nested-attributes
 
 == DESCRIPTION:
 
-FIXME (describe your package)
+A port of ActiveRecord's nested attributes functionality for MongoMapper.
 
 == FEATURES/PROBLEMS:
 
-* FIXME (list of features or problems)
+At the moment only collection functionality is supported.
 
 == SYNOPSIS:
 
-  FIXME (code sample of usage)
+class Parent
+  include MongoMapper::Document
+  plugin MongoMapper::Plugins::Associations::NestedAttributes
+
+  many :children
+  accepts_nested_attributes_for :children
+end
+
+class Child
+  include MongoMapper::Document
+
+  key :foo, String
+end
 
 == REQUIREMENTS:
 
-* FIXME (list of requirements)
+* MongoMapper
 
 == INSTALL:
 
-* FIXME (sudo gem install, anything else)
+Add
+gem 'mm-nested-attributes'
+to your Gemfile.
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2009 FIXME (different license?)
+Copyright (c) 2010
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
