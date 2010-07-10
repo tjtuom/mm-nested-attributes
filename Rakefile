@@ -15,5 +15,9 @@ Bones {
   url      'http://github.com/tjtuom/mm-nested-attributes'
 
   ignore_file '.gitignore'
+
+  depend_on 'mongo_mapper', '0.8.2'
+
+  depend_on 'rspec', :development => true
 }
 
