@@ -13,5 +13,7 @@ Bones {
   authors  'FIXME (who is writing this software)'
   email    'FIXME (your e-mail)'
   url      'FIXME (project homepage)'
+
+  ignore_file '.gitignore'
 }
 
