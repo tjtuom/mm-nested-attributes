@@ -16,3 +16,5 @@ announcement.txt
 coverage
 doc
 pkg
+nbproject/
+spec/spec.opts.netbeans

@@ -85,7 +85,15 @@ module MongoMapper
           # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
           def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
             if has_destroy_flag?(attributes) && allow_destroy
-              record.mark_for_destruction
+              unless record.class.embeddable?
+                record.mark_for_destruction
+              else
+                record._parent_document.class.associations.each do |key, association|
+                  if association.klass.eql?(record.class)
+                    record._parent_document.send(key).delete_if {|q| q.id.to_s == record.id.to_s }
+                  end
+                end
+              end
             else
               record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
             end
