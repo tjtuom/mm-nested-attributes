@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{A port of ActiveRecord's nested attributes functionality for MongoMapper.}
   s.email = %q{toni@piranhadigital.fi}
   s.extra_rdoc_files = ["History.txt", "README.txt", "version.txt"]
-  s.files = [".gitignore", "History.txt", "README.txt", "Rakefile", "lib/mm-nested-attributes.rb", "lib/mongo_mapper/plugins/associations/nested_attributes.rb", "mm-nested-attributes.gemspec", "spec/mm-nested-attributes_spec.rb", "spec/spec.opts", "spec/spec_helper.rb", "version.txt"]
+  s.files = [".gitignore", "History.txt", "README.txt", "Rakefile", "lib/mm-nested-attributes.rb", "lib/mongo_mapper/plugins/associations/nested_attributes.rb", "mm-nested-attributes.gemspec", "spec/mm-nested-attributes_spec.rb", "spec/rspec.opts", "spec/spec_helper.rb", "version.txt"]
   s.homepage = %q{http://github.com/tjtuom/mm-nested-attributes}
   s.rdoc_options = ["--main", "README.txt"]
   s.require_paths = ["lib"]
