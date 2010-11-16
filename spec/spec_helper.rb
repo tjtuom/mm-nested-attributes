@@ -1,4 +1,6 @@
+$VERBOSE = nil
 require 'rubygems'
+require 'bson'
 require 'mongo_mapper'
 
 require File.expand_path(
@@ -17,7 +19,7 @@ Spec::Runner.configure do |config|
   def Doc(name=nil, &block)
     klass = Class.new do
       include MongoMapper::Document
-      set_collection_name :test
+      set_collection_name name.to_sym
 
       if name
         class_eval "def self.name; '#{name}' end"
@@ -37,6 +39,7 @@ Spec::Runner.configure do |config|
   MongoMapper.connection = Mongo::Connection.new('127.0.0.1', 27017)
   MongoMapper.database = "mm-nested-attributes-test-#{RUBY_VERSION.gsub('.', '-')}"
   MongoMapper.database.collections.each { |c| c.drop_indexes }
+  MongoMapper.database.collections.each { |c| c.remove }
 
 end
 

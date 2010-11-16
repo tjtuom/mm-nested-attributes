@@ -42,6 +42,9 @@ describe "Nested attributes plugin for collections" do
 
     @child_klass = Doc('Child') do
       key :value, String
+      key :parent_id, ObjectId
+
+      belongs_to :parent, :class => @klass
     end
 
     @klass.many :children, :class => @child_klass
@@ -83,7 +86,7 @@ describe "Nested attributes plugin for collections" do
       @parent = @klass.new
       @child = @parent.children.create!(:value => 'foo')
 
-      id = BSON::ObjectID.new
+      id = BSON::ObjectId.new
       doing do
         @parent.children_attributes = [ { :id => id, :value => 'bar' } ]
       end.should raise_error(MongoMapper::DocumentNotFound, "Couldn't find Child with ID=#{id} for Parent with ID=#{@parent.id}")
