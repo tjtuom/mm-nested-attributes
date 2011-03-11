@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'ruby-debug'
 require 'rspec'
 require 'mongo_mapper'
 
