@@ -23,6 +23,15 @@ module MongoMapper
             options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
             options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
+            class_eval %{
+            before_validation :save_associations
+
+            def save_associations
+              associations.each do |key,association|
+                send(key).save! if nested_attributes_options.keys.include?(association.name) && !association.many?
+              end
+            end
+}, __FILE__, __LINE__
             attr_names.each do |association_name|
               if association = associations[association_name]
                 type = (association.many? ? :collection : :one_to_one)
@@ -82,20 +91,29 @@ module MongoMapper
           end
 
           def assign_nested_attributes_for_one_to_one_association(association_name, attributes_collection)
+            #require 'ruby_debug';debugger
             options = nested_attributes_options[association_name]
+            association = associations[association_name]
+            record = send(association_name)
             attributes_collection = attributes_collection.with_indifferent_access
-            check_existing_record = (options[:update_only] || attributes_collection['id'].present?)
+            check_existing_record = (options[:update_only] || !attributes_collection['id'].blank?)
 
-            if check_existing_record && (record = send(association_name)) &&
+            if check_existing_record && record &&
                 (options[:update_only] || record.id.to_s == attributes_collection['id'].to_s)
+              
               assign_to_or_mark_for_destruction(record, attributes_collection, options[:allow_destroy]) unless call_reject_if(association_name, attributes_collection)
 
-            elsif attributes_collection['id'].present?
+            elsif !attributes_collection['id'].blank?
               raise_nested_attributes_record_not_found(association_name, attributes_collection['id'])
 
             elsif !reject_new_record?(association_name, attributes_collection)
               if respond_to?(association_name)
-                send(association_name).build(attributes_collection.except(*UNASSIGNABLE_KEYS))
+                if association.one?
+                  attributes_collection[self.class.name.foreign_key] = id
+                end
+                klass = association_name.to_s.classify.constantize
+                send("#{association_name}=",klass.create!(attributes_collection.except(*UNASSIGNABLE_KEYS)))
+
               else
                 raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
               end

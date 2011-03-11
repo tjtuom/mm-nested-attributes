@@ -44,3 +44,33 @@ Rspec.configure do |c|
   MongoMapper.database = "mm-nested-attributes-test-#{RUBY_VERSION.gsub('.', '-')}"
   MongoMapper.database.collections.each { |c| c.drop_indexes }
 end
+
+class TestParent
+  include MongoMapper::Document
+  plugin MongoMapper::Plugins::Associations::NestedAttributes
+  many :test_children
+  one :test_solo
+  belongs_to :test_one
+  key :name, String
+  accepts_nested_attributes_for :test_children, :test_solo, :test_one
+  
+end
+
+class TestChild
+  include MongoMapper::Document
+  belongs_to :test_parent
+  key :name, String
+end
+
+class TestSolo
+  include MongoMapper::Document
+  belongs_to :test_parent
+  key :name, String
+
+end
+
+class TestOne
+  include MongoMapper::Document
+  one :test_parent
+  key :name, String
+end

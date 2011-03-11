@@ -98,31 +98,13 @@ describe "Nested attributes plugin for collections" do
         key :value, String
       end
 
-      @solo_klass = Doc('Solo') do
-        key :value, String
-      end
 
       @klass.many :children, :class => @child_klass
-      @klass.one :solo, :class => @solo_klass
-      @klass.accepts_nested_attributes_for :children, :solo
+      @klass.accepts_nested_attributes_for :children
 
       @parent = @klass.new
     end
 
-    describe "assigning attributes" do
-      it "creates the solo model when given a hash" do
-        @parent.solo_attributes = { :value => "foo" }
-
-        @parent.solo.value.should == "foo"
-      end
-    end
-
-    describe "initializing a new model" do
-      it "creates the solo model when given an array" do
-        @parent = @klass.new(:solo_attributes =>  { :value => "foo"} )
-        @parent.solo.value.should == "foo"
-      end
-    end
   end
 
 
@@ -146,6 +128,12 @@ describe "Nested attributes plugin for collections" do
       @klass.accepts_nested_attributes_for :children, :solo
 
       @parent = @klass.new
+    end
+
+    after do
+      TestParent.all.each {|t| t.destroy}
+      TestOne.all.each {|t| t.destroy}
+      TestSolo.all.each {|t| t.destroy}
     end
     
     it "raises an error if the document isn't found" do
@@ -177,25 +165,33 @@ describe "Nested attributes plugin for collections" do
     end
 
     it 'updates the one to one document' do
-      @parent = @klass.create!(:value => 'parent_value', :solo_attributes => {:value => 'solo_foo'})
-      @parent.reload
-      @solo_child = @klass.first.solo
-      @parent.id.should == @klass.first.id
+      TestParent.all.each(&:destroy)
+      tp = TestParent.create!(:name => 'tp',
+        :test_children_attributes => [{:name => 'tc1'},{:name => 'tc2'}],
+        :test_one_attributes => {:name => 'to'},
+      :test_solo_attributes => {:name => 'ts'})
+      #require 'ruby-debug';debugger
 
-      @parent.solo.should == @klass.first.solo
-      @parent.solo_attributes = {:id => @solo_child.id, :value => 'solo_bar' }
-      @parent.solo.value.should == 'solo_bar'
 
-      # has not been saved so the db should have the old value
-      #fails here
-      @klass.first.solo.value.should == 'solo_foo'
+      tp.test_one.name.should == 'to'
+      tp.test_one_attributes = {:id => tp.test_one.id, :name => 'one_bar' }
+      tp.test_one.name.should == 'one_bar'
 
-      @parent.save!
-      @parent.solo.value.should == 'solo_bar'
-      # after save the db should have the new value
-      # require 'ruby_debug';debugger
-      @klass.first.solo.value.should == 'solo_bar'
-      @klass.first.destroy
+      tp.test_solo.name.should == 'ts'
+      tp.test_solo_attributes = {:id => tp.test_solo.id, :name => 'solo_bar' }
+      tp.test_solo.name.should == 'solo_bar'
+
+
+      # has not been saved so the db should have the old name
+
+      tp.save!
+      tp.test_one.name.should == 'one_bar'
+      tp.test_solo.name.should == 'solo_bar'
+
+      # after save the db should have the new name
+      TestParent.find(tp.id).test_one.name.should == 'one_bar'
+      TestParent.find(tp.id).test_solo.name.should == 'solo_bar'
+      TestParent.find(tp.id).destroy
     end
   end
 

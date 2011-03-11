@@ -34,3 +34,19 @@ module MongoMapper
     end
   end
 end
+
+module MongoMapper
+  module Plugins
+    module Associations
+      class BelongsToProxy
+        def save_to_collection(options={})
+          if @target && @target.marked_for_destruction?
+            @target.destroy
+          end
+
+        end
+      end
+    end
+  end
+end
+
