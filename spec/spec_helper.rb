@@ -53,7 +53,7 @@ class TestParent
   belongs_to :test_one
   key :name, String
   accepts_nested_attributes_for :test_children, :test_solo, :test_one
-  
+  validates_presence_of :name
 end
 
 class TestChild
