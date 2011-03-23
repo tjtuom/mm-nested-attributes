@@ -28,7 +28,9 @@ module MongoMapper
 
             def save_associations
               associations.each do |key,association|
-                send(key).save! if nested_attributes_options.keys.include?(association.name) && !association.many?
+                # debugger if !association.many?
+                # send(key).save! if nested_attributes_options.keys.include?(association.name) && !association.many?
+                send(key).try(:save!) if nested_attributes_options.keys.include?(association.name) && !association.many?
               end
             end
 }, __FILE__, __LINE__
