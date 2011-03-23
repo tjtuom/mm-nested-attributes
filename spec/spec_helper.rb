@@ -1,7 +1,13 @@
 require 'rubygems'
 require 'ruby-debug'
+gem "activesupport", "= 3.0.4"
+gem "activemodel", "= 3.0.4"
+$LOAD_PATH << "~/code/jnunemaker-mongomapper/lib"
+require "~/code/jnunemaker-mongomapper/lib/mongo_mapper.rb"
+
 require 'rspec'
-require 'mongo_mapper'
+# require 'mongo_mapper'
+
 
 require File.expand_path(File.join(File.dirname(__FILE__), %w[.. lib mm-nested-attributes]))
 
