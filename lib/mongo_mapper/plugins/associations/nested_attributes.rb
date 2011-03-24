@@ -6,14 +6,13 @@ module MongoMapper
   module Plugins
     module Associations
       module NestedAttributes
+        extend ActiveSupport::Concern
 
         REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
-
-        def self.configure(model)
-          model.class_eval do
-            class_inheritable_accessor :nested_attributes_options, :instance_writer => false
-            self.nested_attributes_options = {}
-          end
+        
+        included do
+          class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+          self.nested_attributes_options = {}
         end
 
         module ClassMethods
