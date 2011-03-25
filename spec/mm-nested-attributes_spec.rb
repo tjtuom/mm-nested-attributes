@@ -272,54 +272,99 @@ describe "Nested attributes plugin for embedded document" do
     @child_klass = EDoc('Child') do
       key :value, String
     end
+    
+    @brat_klass = EDoc('Brat') do
+      key :value, String
+    end
 
     @klass.many :children, :class => @child_klass
-    @klass.accepts_nested_attributes_for :children
-
-    @parent = @klass.new
+    @klass.one :brat, :class => @brat_klass
+    # @klass.accepts_nested_attributes_for :children, :brat
+    # 
+    # @parent = @klass.new
   end
 
   describe "deleting an existing document" do
-    it 'does nothing unless :allow_destroy is true' do
-      @klass.accepts_nested_attributes_for :children
-
+    
+    def create_parent_and_brat
       @parent = @klass.new
-      @child = @child_klass.new(:value => 'foo')
-      @parent.children << @child
-
-      @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
-      doing do
-        @parent.save!
-      end.should_not change(@parent.children, :size)
+      @brat = @brat_klass.new(:value => 'foo')
+      @parent.brat = @brat
     end
+    
+    describe "in a one-to-one association" do  
+      it 'does nothing unless :allow_destroy is true' do
+        @klass.accepts_nested_attributes_for :brat
 
-    it 'deletes the document when _destroy is present' do
-      @klass.accepts_nested_attributes_for :children, :allow_destroy => true
+       create_parent_and_brat
 
-      @parent = @klass.new
-      @child = @child_klass.new(:value => 'foo')
-      @parent.children << @child
-
-      @parent.children.size.should eql(1)
-      @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
-      @parent.children.size.should eql(1)
-
-      doing do
+        @parent.brat_attributes = { :id => @brat.id, :_destroy => '1' }
         @parent.save!
-      end.should change(@parent.children, :size)
+        @parent.brat.should_not be_nil
+      end
+
+      it 'deletes the document when _destroy is present' do
+        @klass.accepts_nested_attributes_for :brat, :allow_destroy => true
+      
+        create_parent_and_brat
+      
+        @parent.brat_attributes = { :id => @brat.id, :_destroy => '1' }      
+        @parent.save!
+        @parent.brat.should be_nil
+      end
+      
+      it "does not delete the document until save is called" do
+        @klass.accepts_nested_attributes_for :brat, :allow_destroy => true
+      
+        create_parent_and_brat
+        @parent.brat_attributes = { :id => @brat.id, :_destroy => '1' }
+        @parent.brat.should == @brat
+        @parent.brat.marked_for_destruction?.should be_true
+      end
     end
+    
+    describe "in a collection" do  
+      it 'does nothing unless :allow_destroy is true' do
+        @klass.accepts_nested_attributes_for :children
 
-    it "does not delete the document until save is called" do
-      @klass.accepts_nested_attributes_for :children, :allow_destroy => true
+        @parent = @klass.new
+        @child = @child_klass.new(:value => 'foo')
+        @parent.children << @child
 
-      @parent = @klass.new
-      @child = @parent.children.build(:value => 'foo')
-      @child.save
-      @parent.reload
-
-      doing do
         @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
-      end.should_not change(@parent.children, :size)
+        doing do
+          @parent.save!
+        end.should_not change(@parent.children, :size)
+      end
+
+      it 'deletes the document when _destroy is present' do
+        @klass.accepts_nested_attributes_for :children, :allow_destroy => true
+
+        @parent = @klass.new
+        @child = @child_klass.new(:value => 'foo')
+        @parent.children << @child
+
+        @parent.children.size.should eql(1)
+        @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
+        @parent.children.size.should eql(1)
+
+        doing do
+          @parent.save!
+        end.should change(@parent.children, :size)
+      end
+
+      it "does not delete the document until save is called" do
+        @klass.accepts_nested_attributes_for :children, :allow_destroy => true
+
+        @parent = @klass.new
+        @child = @parent.children.build(:value => 'foo')
+        @child.save
+        @parent.reload
+
+        doing do
+          @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
+        end.should_not change(@parent.children, :size)
+      end
     end
   end
 end
