@@ -14,6 +14,24 @@ module MongoMapper
           class_inheritable_accessor :nested_attributes_options, :instance_writer => false
           self.nested_attributes_options = {}
         end
+        
+        module Callbacks
+          
+          def save_associations
+            associations.each do |key,association|
+              # debugger if !association.many?
+              # send(key).save! if nested_attributes_options.keys.include?(association.name) && !association.many?
+              send(key).try(:save!) if nested_attributes_options.keys.include?(association.name) && !association.many?
+            end
+          end
+          
+          def remove_embedded_associated_records
+            associations.each do |key, association|
+              next unless association.embeddable?
+              self.send(key).delete_if(&:marked_for_destruction?)
+            end
+          end
+        end
 
         module ClassMethods
           def accepts_nested_attributes_for(*attr_names)
@@ -21,18 +39,11 @@ module MongoMapper
             options.update(attr_names.extract_options!)
             options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
             options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
-
-            class_eval %{
+            
+            # Pull in callbacks and set them up
+            include Callbacks
             before_validation :save_associations
-
-            def save_associations
-              associations.each do |key,association|
-                # debugger if !association.many?
-                # send(key).save! if nested_attributes_options.keys.include?(association.name) && !association.many?
-                send(key).try(:save!) if nested_attributes_options.keys.include?(association.name) && !association.many?
-              end
-            end
-}, __FILE__, __LINE__
+            
             attr_names.each do |association_name|
               if association = associations[association_name]
                 type = (association.many? ? :collection : :one_to_one)
@@ -125,15 +136,16 @@ module MongoMapper
           # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
           def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
             if has_destroy_flag?(attributes) && allow_destroy
-              unless record.class.embeddable?
-                record.mark_for_destruction
-              else
-                record._parent_document.class.associations.each do |key, association|
-                  if association.klass.eql?(record.class)
-                    record._parent_document.send(key).delete_if {|q| q.id.to_s == record.id.to_s }
-                  end
-                end
-              end
+              record.mark_for_destruction
+              # unless record.class.embeddable?
+              #   record.mark_for_destruction
+              # else
+              #   record._parent_document.class.associations.each do |key, association|
+              #     if association.klass.eql?(record.class)
+              #       record._parent_document.send(key).delete_if {|q| q.id.to_s == record.id.to_s }
+              #     end
+              #   end
+              # end
             else
               record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
             end

@@ -13,45 +13,20 @@ module MongoMapper
         end
       end
     end
-  end
-end
-
-module MongoMapper
-  module Plugins
-    module Associations
-      class ManyDocumentsProxy
-        def save_to_collection_with_delete(options={})
-          if @target
-            to_delete = @target.delete_if { |doc| doc.marked_for_destruction? }
-            to_delete.each { |doc| doc.destroy }
-          end
-          save_to_collection_without_delete(options)
+  
+    module EmbeddedDocument
+      module InstanceMethods
+        def mark_for_destruction
+          @marked_for_destruction = true
         end
 
-        alias :save_to_collection_without_delete :save_to_collection
-        alias :save_to_collection :save_to_collection_with_delete
-      end
-    end
-  end
-end
-
-module MongoMapper
-  module Plugins
-    module Associations
-      class BelongsToProxy
-        def save_to_collection(options={})
-          if @target && @target.marked_for_destruction?
-            @target.destroy
-          end
-
+        def marked_for_destruction?
+          @marked_for_destruction
         end
       end
     end
-  end
-end
-
-module MongoMapper
-  module Plugins
+  
+  
     module Associations
       class Base
         def many?
@@ -74,7 +49,54 @@ module MongoMapper
           true
         end
       end
-    end
+      
+      class ManyDocumentsProxy
+        def save_to_collection_with_delete(options={})
+          if @target
+            to_delete = @target.delete_if { |doc| doc.marked_for_destruction? }
+            to_delete.each { |doc| doc.destroy }
+          end
+          save_to_collection_without_delete(options)
+        end
+
+        alias :save_to_collection_without_delete :save_to_collection
+        alias :save_to_collection :save_to_collection_with_delete
+      end
+      
+      class BelongsToProxy
+        def save_to_collection(options={})
+          if @target 
+            if @target.marked_for_destruction?
+              @target.destroy
+            else
+              @target.save(options)
+            end
+          end
+        end
+      end
+      
+      class OneEmbeddedProxy
+        def save_to_collection(options={})
+          if @target 
+            if @target.marked_for_destruction?
+              @target = nil
+            else
+              @target.persist(options)
+            end
+          end
+        end
+      end
+      
+      class EmbeddedCollection
+        def save_to_collection(options={})
+          if @target
+            @target.delete_if(&:marked_for_destruction?)
+            @target.each{|doc| doc.persist(options)}
+          end
+        end
+      end
+          
+    end  
   end
 end
 

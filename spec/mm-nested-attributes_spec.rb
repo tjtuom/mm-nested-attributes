@@ -170,7 +170,7 @@ describe "Nested attributes plugin for collections" do
         :test_children_attributes => [{:name => 'tc1'},{:name => 'tc2'}],
         :test_one_attributes => {:name => 'to'},
       :test_solo_attributes => {:name => 'ts'})
-      #require 'ruby-debug';debugger
+      # require 'ruby-debug';debugger
 
 
       tp.test_one.name.should == 'to'
@@ -302,22 +302,24 @@ describe "Nested attributes plugin for embedded document" do
 
       @parent.children.size.should eql(1)
       @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
-      @parent.children.size.should eql(0)
+      @parent.children.size.should eql(1)
 
-      #      doing do
-      #        @parent.save!
-      #      end.should change(@parent.children, :size)
+      doing do
+        @parent.save!
+      end.should change(@parent.children, :size)
     end
 
-    #    it "does not delete the document until save is called" do
-    #      @klass.accepts_nested_attributes_for :children, :allow_destroy => true
-    #
-    #      @parent = @klass.new
-    #      @child = @parent.children.create!(:value => 'foo')
-    #
-    #      doing do
-    #        @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
-    #      end.should_not change(@parent.children, :size)
-    #    end
+    it "does not delete the document until save is called" do
+      @klass.accepts_nested_attributes_for :children, :allow_destroy => true
+
+      @parent = @klass.new
+      @child = @parent.children.build(:value => 'foo')
+      @child.save
+      @parent.reload
+
+      doing do
+        @parent.children_attributes = [ { :id => @child.id, :_destroy => '1' } ]
+      end.should_not change(@parent.children, :size)
+    end
   end
 end
