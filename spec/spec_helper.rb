@@ -2,8 +2,8 @@ require 'rubygems'
 require 'ruby-debug'
 gem "activesupport", "= 3.0.4"
 gem "activemodel", "= 3.0.4"
-$LOAD_PATH << "~/code/jnunemaker-mongomapper/lib"
-require "~/code/jnunemaker-mongomapper/lib/mongo_mapper.rb"
+$LOAD_PATH << "~/code/mongomapper-jnunemaker/lib"
+require "~/code/mongomapper-jnunemaker/lib/mongo_mapper.rb"
 
 require 'rspec'
 # require 'mongo_mapper'

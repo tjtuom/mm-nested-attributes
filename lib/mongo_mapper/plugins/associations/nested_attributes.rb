@@ -120,11 +120,12 @@ module MongoMapper
 
             elsif !reject_new_record?(association_name, attributes_collection)
               if respond_to?(association_name)
-                if association.one?
+                if association.one? && !association.embeddable?
                   attributes_collection[self.class.name.foreign_key] = id
                 end
-                klass = association_name.to_s.classify.constantize
-                send("#{association_name}=",klass.create!(attributes_collection.except(*UNASSIGNABLE_KEYS)))
+                klass = association.klass
+                create_method = klass.embeddable? ? :new : :create!
+                send("#{association_name}=",klass.send(create_method, attributes_collection.except(*UNASSIGNABLE_KEYS)))
 
               else
                 raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
