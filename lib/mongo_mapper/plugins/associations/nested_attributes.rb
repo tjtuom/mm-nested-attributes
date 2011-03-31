@@ -79,8 +79,9 @@ module MongoMapper
               raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
             end
 
-            if options[:limit] && attributes_collection.size > options[:limit]
-              raise TooManyRecords, "Maximum #{options[:limit]} records are allowed. Got #{attributes_collection.size} records instead."
+            limit = options[:limit].is_a?(Proc) ? options[:limit].call(self) : options[:limit]
+            if limit && attributes_collection.size > limit
+              raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
             end
 
             if attributes_collection.is_a? Hash
