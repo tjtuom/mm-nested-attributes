@@ -11,7 +11,8 @@ module MongoMapper
         REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |_, value| value.blank? } }
         
         included do
-          class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+          # class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+          class_attribute :nested_attributes_options
           self.nested_attributes_options = {}
         end
         
