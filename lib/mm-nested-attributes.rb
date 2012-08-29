@@ -3,26 +3,22 @@ require 'mongo_mapper/plugins/associations/nested_attributes'
 module MongoMapper
   module Plugins
     module Document
-      module InstanceMethods
-        def mark_for_destruction
-          @marked_for_destruction = true
-        end
+      def mark_for_destruction
+        @marked_for_destruction = true
+      end
 
-        def marked_for_destruction?
-          @marked_for_destruction
-        end
+      def marked_for_destruction?
+        @marked_for_destruction
       end
     end
   
     module EmbeddedDocument
-      module InstanceMethods
-        def mark_for_destruction
-          @marked_for_destruction = true
-        end
+      def mark_for_destruction
+        @marked_for_destruction = true
+      end
 
-        def marked_for_destruction?
-          @marked_for_destruction
-        end
+      def marked_for_destruction?
+        @marked_for_destruction
       end
     end
   
